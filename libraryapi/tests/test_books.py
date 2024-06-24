@@ -1,7 +1,7 @@
 import random
 import sys
 import unittest
-from pprint import pprint
+from urllib.parse import urlencode
 
 import psycopg2
 from psycopg2 import sql
@@ -22,7 +22,7 @@ def check_if_database_exists(dbname, conn):
     return exists
 
 
-def create_db_if_not_exists(dbname, conn):
+def create_test_db_if_not_exists(dbname, conn):
     if not check_if_database_exists(dbname, conn):
         cursor = conn.cursor()
         cursor.execute(sql.SQL("CREATE DATABASE {}").format(
@@ -43,7 +43,9 @@ class MyTestCase(TestCase):
         test_title = "testtitle"
         author_firstname = "John"
         author_lastname = "Doe"
-        created_book = self.client.post(f"/api/books/{book_nr}/{test_title}/{author_firstname}/{author_lastname}/")
+        query_params = {"serial_number": book_nr, "title": test_title, "author_firstname": author_firstname, "author_lastname": author_lastname}
+        url = '/api/books/?' + urlencode(query_params)
+        created_book = self.client.post(url)
         self.assertEqual(created_book.status_code, 201)
 
         response = self.client.get("/api/books/")
@@ -52,7 +54,7 @@ class MyTestCase(TestCase):
         self.assertEqual(len(response.json), before_adding + 1)
 
         # try to add the same book second time, should not succeed
-        created_book = self.client.post(f"/api/books/{book_nr}/{test_title}/{author_firstname}/{author_lastname}/")
+        created_book = self.client.post(url)
         self.assertEqual(created_book.status_code, 409)
 
     def test_add_books_invalid_serial_number(self):
@@ -61,16 +63,20 @@ class MyTestCase(TestCase):
         # save a number of books before the test
         before_adding = len(response.json)
 
-        book_nr = "123" # too short
+        book_nr = "123"  # too short
         test_title = "testtitle"
         author_firstname = "John"
         author_lastname = "Doe"
-        print(f"test data: {book_nr} ")
-        created_book = self.client.post(f"/api/books/{book_nr}/{test_title}/{author_firstname}/{author_lastname}/")
+        query_params = {"serial_number": book_nr, "title": test_title, "author_firstname": author_firstname,
+                        "author_lastname": author_lastname}
+        url = '/api/books/?' + urlencode(query_params)
+        created_book = self.client.post(url)
         self.assertEqual(created_book.status_code, 415)
 
         # Too long
-        created_book = self.client.post(f"/api/books/1234567899999/{test_title}/{author_firstname}/{author_lastname}/")
+        query_params["serial_number"] = "1234567899999"
+        url = '/api/books/?' + urlencode(query_params)
+        created_book = self.client.post(url)
         self.assertEqual(created_book.status_code, 415)
 
         response = self.client.get("/api/books/")
@@ -81,7 +87,7 @@ class MyTestCase(TestCase):
         try:
             db_connection = psycopg2.connect(dbname='postgres', user='bookworm', host='db', password='my-password')
             db_connection.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
-            create_db_if_not_exists(TEST_DB_NAME, db_connection)
+            create_test_db_if_not_exists(TEST_DB_NAME, db_connection)
         finally:
             if db_connection:
                 db_connection.close()

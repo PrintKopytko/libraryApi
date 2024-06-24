@@ -27,31 +27,30 @@ def get_books():
     return jsonify([book.to_dict() for book in books])
 
 
-@books_bp.route('/<string:serial_number>/<string:title>/<string:author_firstname>/<string:author_lastname>/',
-                methods=['POST'])
+@books_bp.route('/', methods=['POST'])
 @validate()
-def add_book(serial_number: str, title: str, author_firstname: str, author_lastname: str):
+def add_book():
     """
     Add a new book to the library. If author doesn't exist, it will be created
     ---
     parameters:
       - name: serial_number
-        in: path
+        in: query
         type: string
         required: true
         description: 6 digit book serial number
       - name: title
-        in: path
+        in: query
         type: string
         required: true
         description: book title
       - name: author_firstname
-        in: path
+        in: query
         type: string
         required: true
         description: Book author first name
       - name: author_lastname
-        in: path
+        in: query
         type: string
         required: true
         description: Book author last name
@@ -63,7 +62,10 @@ def add_book(serial_number: str, title: str, author_firstname: str, author_lastn
       415:
         description: Serial number malformed
     """
-
+    serial_number: str = request.args["serial_number"]
+    title: str = request.args["title"]
+    author_firstname: str = request.args["author_firstname"]
+    author_lastname: str = request.args["author_lastname"]
     verify_number(SERIAL_NUMBER_DIGITS, serial_number=serial_number)
     existing_author = Author.query.filter(Author.first_name == author_firstname and
                                           Author.last_name == author_lastname).first()
@@ -111,9 +113,9 @@ def delete_book(serial_number: str):
     return jsonify({'message': 'Book deleted'})
 
 
-@books_bp.route('/borrow/<string:serial_number>/<string:library_card>', methods=['POST'])
+@books_bp.route('/borrow/<string:serial_number>/', methods=['POST'])
 @validate()
-def borrow_book(serial_number: str, library_card: str):
+def borrow_book(serial_number: str):
     """
     Borrow the book
     ---
@@ -124,7 +126,7 @@ def borrow_book(serial_number: str, library_card: str):
         required: true
         description: 6 digit book serial number
       - name: library_card
-        in: path
+        in: query
         type: string
         required: true
         description: 6 digit library card number
@@ -136,6 +138,7 @@ def borrow_book(serial_number: str, library_card: str):
       409:
         description: Book is already borrowed!
     """
+    library_card: str = request.args["library_card"]
     verify_number(SERIAL_NUMBER_DIGITS, serial_number=serial_number, library_card=library_card)
     book = Book.query.get_or_404(int(serial_number))
     verify_book_was_not_deleted(book)
@@ -183,7 +186,7 @@ def return_book(serial_number: str):
     return f"Book {book} returned!"
 
 
-@users_bp.route('/<string:library_card>/<string:firstname>/<string:lastname>',
+@users_bp.route('/',
                 methods=['POST'])
 @validate()
 def add_user(library_card: str, firstname: str, lastname: str):
@@ -192,17 +195,17 @@ def add_user(library_card: str, firstname: str, lastname: str):
     ---
     parameters:
       - name: library_card
-        in: path
+        in: query
         type: string
         required: true
         description: 6 digit library card number
       - name: firstname
-        in: path
+        in: query
         type: string
         required: true
         description: user's first name
       - name: lastname
-        in: path
+        in: query
         type: string
         required: true
         description: user's last name
@@ -212,7 +215,9 @@ def add_user(library_card: str, firstname: str, lastname: str):
       415:
         description: Serial number malformed
     """
-
+    library_card: str = request.args["library_card"]
+    firstname: str = request.args["firstname"]
+    lastname: str = request.args["lastname"]
     verify_number(SERIAL_NUMBER_DIGITS, library_card=library_card)
 
     new_user = LibraryUser(
