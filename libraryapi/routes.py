@@ -3,6 +3,7 @@ from datetime import datetime
 
 from flask import Blueprint, request, jsonify, abort
 from flask_pydantic import validate
+from sqlalchemy import and_
 from sqlalchemy.exc import IntegrityError
 
 from . import db, SERIAL_NUMBER_DIGITS
@@ -67,8 +68,8 @@ def add_book():
     author_firstname: str = request.args["author_firstname"]
     author_lastname: str = request.args["author_lastname"]
     verify_number(SERIAL_NUMBER_DIGITS, serial_number=serial_number)
-    existing_author = Author.query.filter(Author.first_name == author_firstname and
-                                          Author.last_name == author_lastname).first()
+    existing_author = Author.query.filter(and_(Author.first_name == author_firstname),
+                                          (Author.last_name == author_lastname)).first()
     if existing_author:
         author = existing_author
     else:
@@ -106,7 +107,7 @@ def delete_book(serial_number: str):
         description: Book not found
     """
     verify_number(SERIAL_NUMBER_DIGITS, serial_number=serial_number)
-    book = Book.query.filter(Book.serial_number == serial_number and Book.deleted == False).first_or_404()
+    book = Book.query.filter(and_(Book.serial_number == serial_number), (Book.deleted == False)).first_or_404()
     book.deleted = True
     db.session.add(book)
     db.session.commit()
@@ -173,9 +174,9 @@ def return_book(serial_number: str):
     verify_number(SERIAL_NUMBER_DIGITS, serial_number=serial_number)
     book = Book.query.get_or_404(serial_number)
     verify_book_was_not_deleted(book)
-    borrowings = Borrowing.query.filter(Borrowing.book == book and Borrowing.return_date == None).all()
+    borrowings = Borrowing.query.filter(and_(Borrowing.book == book), (Borrowing.return_date == None)).all()
     if not borrowings:
-        return 404, f"Book {serial_number} was not borrowed!"
+        return f"Book {serial_number} was not borrowed!", 404
     if len(borrowings) > 1:
         logging.error(f"More than 1 active borrowing found for book {book}: {borrowings}")
     for borrowing in borrowings:
