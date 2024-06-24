@@ -1,0 +1,7 @@
+Flask==3.0.3
+Flask-SQLAlchemy==3.1.1
+SQLAlchemy==2.0.31
+psycopg2-binary==2.9.9
+flask-restful==0.3.10
+flasgger==0.9.7.1
+Flask-Pydantic==0.12.0
