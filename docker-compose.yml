@@ -1,11 +1,11 @@
 version: '3.8'
 
 services:
-  web:
+  api:
     build: .
     command: python -m libraryapi.app
     ports:
-      - "5001:5000"
+      - "8000:8000"
     depends_on:
       - db
   db:
@@ -13,7 +13,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data/
     environment:
-      - POSTGRES_USER=username
+      - POSTGRES_USER=bookworm
       - POSTGRES_PASSWORD=my-password
       - POSTGRES_DB=library_db
 volumes:
