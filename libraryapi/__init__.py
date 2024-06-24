@@ -9,6 +9,8 @@ from .config import Config
 
 db = SQLAlchemy()
 
+SERIAL_NUMBER_DIGITS = 6
+
 
 def create_app():
     app = Flask(__name__)
@@ -28,8 +30,9 @@ def create_app():
     db.init_app(app)
 
     with app.app_context():
-        from .routes import books_bp
+        from .routes import books_bp, users_bp
         app.register_blueprint(books_bp, url_prefix='/api/books')
+        app.register_blueprint(users_bp, url_prefix='/api/users')
 
         tries = 10
         attempt = 1
