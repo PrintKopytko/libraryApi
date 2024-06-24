@@ -189,7 +189,7 @@ def return_book(serial_number: str):
 @users_bp.route('/',
                 methods=['POST'])
 @validate()
-def add_user(library_card: str, firstname: str, lastname: str):
+def add_user():
     """
     Create library card for new user
     ---
