@@ -38,7 +38,7 @@ DATABASE_URL=[database url] python -m libraryapi.app
 ```
 where `[database url]` is a string containing connection parameters to your database like
 `postgresql://username:my-password@localhost:5432/library_db`
-
+You can also send requests to API using this swagger.
 
 ## Author & Chief Librarian
 Patryk Kowalczyk
