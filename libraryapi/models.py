@@ -50,7 +50,7 @@ class Book(db.Model):
         return borrowing
 
     def to_dict(self):
-        book_dict = {"serial_numer": self.serial_number, "title": self.title, "author": f"{self.author.first_name} {self.author.last_name}"}
+        book_dict = {"serial_number": self.serial_number, "title": self.title, "author": f"{self.author.first_name} {self.author.last_name}"}
         active_borrowing = self.active_borrowing()
         if active_borrowing:
             book_dict["available"] = False

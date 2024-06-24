@@ -5,28 +5,30 @@ from flasgger import Swagger
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 
-from .config import Config
+from .config import Config, TestConfig
 
 db = SQLAlchemy()
 
 SERIAL_NUMBER_DIGITS = 6
 
 
-def create_app():
+def create_app(test=False):
     app = Flask(__name__)
     app.logger.setLevel(logging.INFO)
     swagger = Swagger(app, template={
         "info": {
-            "title": "My API",
-            "description": "API for demonstrating Swagger with Flask",
+            "title": "Library API",
+            "description": "API for a simple library",
             "version": "1.0.0"
         },
         "host": "localhost:8000",
         "basePath": "/api",
         "schemes": ["http"],
     })
-    app.config.from_object(Config)
-
+    if test:
+        app.config.from_object(TestConfig)
+    else:
+        app.config.from_object(Config)
     db.init_app(app)
 
     with app.app_context():

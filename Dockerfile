@@ -8,4 +8,5 @@ COPY ./libraryapi/requirements.txt /usr/src/app/requirements.txt
 RUN pip install -r requirements.txt
 
 # copy project
-COPY ./libraryapi /usr/src/app/libraryapi
+COPY ./libraryapi ./libraryapi
+COPY run-tests.sh .
