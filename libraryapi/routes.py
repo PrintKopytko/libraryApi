@@ -3,6 +3,7 @@ from datetime import datetime
 
 from flask import Blueprint, request, jsonify, abort
 from flask_pydantic import validate
+from pydantic import BaseModel, Field
 from sqlalchemy import and_
 from sqlalchemy.exc import IntegrityError
 
@@ -187,6 +188,11 @@ def return_book(serial_number: str):
     return f"Book {book} returned!"
 
 
+class UserModel(BaseModel):
+  library_card: str
+  firstname: str = Field(..., max_length=10)
+  lastname: str
+
 @users_bp.route('/',
                 methods=['POST'])
 @validate()
@@ -216,15 +222,13 @@ def add_user():
       415:
         description: Serial number malformed
     """
-    library_card: str = request.args["library_card"]
-    firstname: str = request.args["firstname"]
-    lastname: str = request.args["lastname"]
-    verify_number(SERIAL_NUMBER_DIGITS, library_card=library_card)
+    usr = UserModel(**request.args)
+    verify_number(SERIAL_NUMBER_DIGITS, library_card=usr.library_card)
 
     new_user = LibraryUser(
-        library_card=int(library_card),
-        first_name=firstname,
-        last_name=lastname
+        library_card=int(usr.library_card),
+        first_name=usr.firstname,
+        last_name=usr.lastname
     )
     db.session.add(new_user)
     try:
